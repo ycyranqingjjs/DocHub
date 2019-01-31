@@ -394,6 +394,30 @@ func HandleOffice(uid int, tmpfile string, form FormUpload) (err error) {
 	return
 }
 
+//处理上传的ceb文档
+//@param        uid         用户id
+//@param        tmpfile     临时文件
+//@param        form        上传表单
+func HandleCeb(uid int, tmpfile string, form FormUpload) (err error) {
+	//转化成PDF文档，转换成功之后，调用pdf文档处理
+	if err = helper.CebToPdf(tmpfile); err != nil {
+		helper.Logger.Error("ceb（%v）处理失败：%v", tmpfile, err.Error())
+		return err
+	}
+
+	pdf := strings.TrimSuffix(tmpfile, "."+form.Ext) + ".pdf"
+
+	//处理pdf
+	if err = HandlePdf(uid, pdf, form); err == nil {
+		//如果转成pdf文档成功，则把原文档移动到OSS存储服务器
+		NewOss().MoveToOss(tmpfile, form.Md5+"."+form.Ext, false, true)
+	} else {
+		helper.Logger.Error("pdf文档（%v）处理错误：%v", pdf, err.Error())
+	}
+
+	return
+}
+
 //处理上传的非Office文档和非PDF文档
 //@param        uid         用户id
 //@param        tmpfile     临时文件

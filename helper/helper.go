@@ -415,6 +415,35 @@ func OfficeToPdf(office string) (err error) {
 	return
 }
 
+//office文档转pdf，返回转化后的文档路径和错误
+func CebToPdf(ceb string) (err error) {
+	//	soffice --headless --invisible --convert-to pdf doctest.docx
+	//	soffice --headless --invisible --convert-to pdf doctest.docx
+	//soffice := beego.AppConfig.DefaultString("soffice", "soffice")
+	ceb2pdf := GetConfig("depend", "ceb2pdf", "ceb2pdf")
+	dir_slice := strings.Split(ceb, "/")
+	pdffile := strings.Split(dir_slice[3], ".")
+	hz := ".pdf"
+	pdffiles := fmt.Sprintf("%s%s", pdffile[0], hz)
+	dir := strings.Join(dir_slice[0:(len(dir_slice)-1)], "/")
+	dirs := fmt.Sprintf("%s/%s", dir, pdffiles)
+	cmd := exec.Command(ceb2pdf, ceb, dirs)
+
+	if Debug {
+		Logger.Debug("CEB 文档转 PDF:", cmd.Args)
+	}
+	go func() { //超时关闭程序
+		expire := GetConfigInt64("depend", "soffice-expire")
+		if expire <= 0 {
+			expire = 1800
+		}
+		time.Sleep(time.Duration(expire) * time.Second)
+		cmd.Process.Kill()
+	}()
+	err = cmd.Run()
+	return
+}
+
 //非office文档(.txt,.mobi,.epub)转pdf文档
 func UnofficeToPdf(file string) (pdfFile string, err error) {
 	//calibre := beego.AppConfig.DefaultString("calibre", "ebook-convert")

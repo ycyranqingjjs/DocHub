@@ -140,11 +140,14 @@ func (this *UploadController) Post() {
 		if info, err := os.Stat(tmpfile); err == nil {
 			form.Size = int(info.Size())
 		}
+		fmt.Print("开始判断文件类型")
 		switch ext {
 		case "pdf": //处理pdf文档
 			go models.HandlePdf(this.IsLogin, tmpfile, form)
 		case "umd", "epub", "chm", "txt", "mobi": //处理无法转码实现在线浏览的文档
 			go models.HandleUnOffice(this.IsLogin, tmpfile, form)
+		case "ceb": //处理ceb文档
+			go models.HandleCeb(this.IsLogin, tmpfile, form)
 		default: //处理office文档
 			go models.HandleOffice(this.IsLogin, tmpfile, form)
 		}
