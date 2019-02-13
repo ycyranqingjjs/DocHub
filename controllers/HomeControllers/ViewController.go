@@ -86,10 +86,7 @@ func (this *ViewController) Get() {
 	}
 	this.Data["TotalPages"] = pages
 	this.Data["PageShow"] = PageShow
-	fmt.Print("1111111111111111111111\n")
 	fmt.Print(this.Data)
-	fmt.Print("\n")
-	fmt.Print("222222222222222222222\n")
 	if this.Data["Comments"], _, err = models.NewDocumentComment().GetCommentList(id, 1, 10); err != nil {
 		helper.Logger.Error(err.Error())
 	}
