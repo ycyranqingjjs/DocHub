@@ -122,8 +122,6 @@ func (*Oss) DefaultPicture(picture, style string, ext ...string) (url string) {
 //@param            IsGzip           是否做gzip压缩，做gzip压缩的话，需要修改oss中对象的响应头，设置gzip响应
 func (this *Oss) MoveToOss(local, save string, IsPreview, IsDel bool, IsGzip ...bool) error {
 	bucket, err := this.NewBucket(IsPreview)
-	fmt.Print(err)
-	fmt.Print("errrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr\n")
 	if err != nil {
 		helper.Logger.Error("OSS Bucket初始化错误：%v", err.Error())
 		return err
@@ -163,7 +161,6 @@ func (this *Oss) MoveToOss(local, save string, IsPreview, IsDel bool, IsGzip ...
 	if isGzip {
 		bucket.SetObjectMeta(save, oss.ContentEncoding("gzip")) //设置gzip响应头
 	}
-	fmt.Print("\n文件上传后，是否删除本地文件判断已注释\n")
 	//if err == nil && IsDel {
 	//	err = os.Remove(local)
 	//}

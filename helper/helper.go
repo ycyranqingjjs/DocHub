@@ -313,6 +313,9 @@ func GetExtCate(ext string) (extCate string, extNum int) {
 	case "txt":
 		extCate = EXT_CATE_TEXT
 		extNum = EXT_NUM_TEXT
+	case "ceb":
+		extCate = EXT_CATE_CEB
+		extNum = EXT_NUM_CEB
 	case EXT_CATE_OTHER_UMD, EXT_CATE_OTHER_CHM, EXT_CATE_OTHER_EPUB, EXT_CATE_OTHER_MOBI: // cate other
 		extCate = ext
 	}
@@ -335,6 +338,8 @@ func GetExtCateByExtNum(num int) (extCate string) {
 		extCate = EXT_CATE_PDF
 	case EXT_NUM_TEXT:
 		extCate = EXT_CATE_TEXT
+	case EXT_NUM_CEB:
+		extCate = EXT_CATE_CEB
 	case EXT_NUM_OTHER:
 		extCate = EXT_CATE_OTHER
 	}
@@ -397,6 +402,35 @@ func OfficeToPdf(office string) (err error) {
 	cmd := exec.Command(soffice, "--headless", "--invisible", "--convert-to", "pdf", office, "--outdir", dir)
 	if Debug {
 		Logger.Debug("office 文档转 PDF:", cmd.Args)
+	}
+	go func() { //超时关闭程序
+		expire := GetConfigInt64("depend", "soffice-expire")
+		if expire <= 0 {
+			expire = 1800
+		}
+		time.Sleep(time.Duration(expire) * time.Second)
+		cmd.Process.Kill()
+	}()
+	err = cmd.Run()
+	return
+}
+
+//office文档转pdf，返回转化后的文档路径和错误
+func CebToPdf(ceb string) (err error) {
+	//	soffice --headless --invisible --convert-to pdf doctest.docx
+	//	soffice --headless --invisible --convert-to pdf doctest.docx
+	//soffice := beego.AppConfig.DefaultString("soffice", "soffice")
+	ceb2pdf := GetConfig("depend", "ceb2pdf", "ceb2pdf")
+	dir_slice := strings.Split(ceb, "/")
+	pdffile := strings.Split(dir_slice[3], ".")
+	hz := ".pdf"
+	pdffiles := fmt.Sprintf("%s%s", pdffile[0], hz)
+	dir := strings.Join(dir_slice[0:(len(dir_slice)-1)], "/")
+	dirs := fmt.Sprintf("%s/%s", dir, pdffiles)
+	cmd := exec.Command(ceb2pdf, ceb, dirs)
+
+	if Debug {
+		Logger.Debug("CEB 文档转 PDF:", cmd.Args)
 	}
 	go func() { //超时关闭程序
 		expire := GetConfigInt64("depend", "soffice-expire")
@@ -752,9 +786,6 @@ func DownFile(fileUrl, savePath string, cookies string) (md5str, localFile, file
 		ext  string         //文件扩展名
 	)
 	//创建HTTP请求
-	fmt.Print("启动下载文件程序.......................\n")
-	fmt.Print("MD5str为" + md5str + "\n")
-	fmt.Print("localFile为" + localFile + "\n")
 	req := crawl.BuildRequest("get", fileUrl, "", cookies, "mac", true, false)
 	resp, err = req.DoRequest()
 	if err != nil {
