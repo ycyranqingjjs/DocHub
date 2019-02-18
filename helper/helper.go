@@ -786,9 +786,6 @@ func DownFile(fileUrl, savePath string, cookies string) (md5str, localFile, file
 		ext  string         //文件扩展名
 	)
 	//创建HTTP请求
-	fmt.Print("启动下载文件程序.......................\n")
-	fmt.Print("MD5str为" + md5str + "\n")
-	fmt.Print("localFile为" + localFile + "\n")
 	req := crawl.BuildRequest("get", fileUrl, "", cookies, "mac", true, false)
 	resp, err = req.DoRequest()
 	if err != nil {
